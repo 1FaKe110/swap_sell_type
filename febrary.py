@@ -38,7 +38,7 @@ class chequeutm():
         date_month = root.attrib['datetime'][2:4]
         date_day = root.attrib['datetime'][:2]
         date_time = 'T' + root.attrib['datetime'][6:8] + ':' + root.attrib['datetime'][-2:] + ':00'
-        date = date_year + '-' + date_month + '-' + date_day + date_time
+        _date = date_year + '-' + date_month + '-' + date_day + date_time
 
         with open(filename) as ch:
             cheque = ch.read()
@@ -46,7 +46,7 @@ class chequeutm():
             ch_b64_bytes = base64.b64encode(ch_bytes)
             ch_b64_string = ch_b64_bytes.decode()
 
-        json1 = {"date": date,
+        json1 = {"date": _date,
                  "data": ch_b64_string}
 
         return json1
@@ -125,7 +125,7 @@ class xmltojson_inbox_base():
         aint = ra.randint(t, t * t)
         return aint.to_bytes(4, byteorder='big')
 
-    def __makejson_inbox__(self, filename, fsrarid, uri):
+    def __makejson_inbox__(self, filename, fsrar_id, transport_id):
         def check_docktype(root):
             if 'ChequeV3' in str(root):
                 type = 'ChequeV3'
@@ -146,8 +146,8 @@ class xmltojson_inbox_base():
         sign = ''
         data = attr[0]['data']
         date = attr[0]['date'][:10]
-        fsrarid = fsrarid
-        uri = fsrarid + '-' + uri
+        fsrarid = fsrar_id
+        uri = fsrarid + '-' + transport_id
         json1 = {
             'certificate': certificate,
             'sign': sign,
@@ -181,8 +181,8 @@ for idx, row in enumerate(row_list[st:]):
         f.write(file.decode('utf-8'))
 
     fsrarid = row['OwnerId']
-    uri = row['TransportId']
-    jsonString = x.__makejson_inbox__(filename=filepath, fsrarid=fsrarid, uri=uri)
+    transport_id = row['TransportId']
+    jsonString = x.__makejson_inbox__(filename=filepath, fsrar_id=fsrarid, transport_id=transport_id)
     get_con.send_json(jsonString, x)
     # print(jsonString)
-    print(fsrarid, uri, f'{idx + st} / {cnt_checks}', uri[:8])
+    print(fsrarid, transport_id, f'{idx + st} / {cnt_checks}', transport_id[:8])

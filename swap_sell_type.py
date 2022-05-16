@@ -68,8 +68,7 @@ class ParserChequeV0:
     def __get_chq_attrib__(cls, filename, root, transport_id, fsrar):
 
         doctype = 'cheque'
-        uid = transport_id
-        transportid = uid.replace('-', '')
+        transportid = transport_id.replace('-', '')
         kassa = root.attrib['kassa']
         shift = root.attrib['shift']
         number = root.attrib['number']
@@ -208,7 +207,7 @@ def main():
     while True:
 
         print("-" * 50,
-              "- transport_id format is:\n"
+              "\n- transport_id format is:\n"
               "\t 020000263354-e1e5714e-12ce-4b03-93bc-9e8fbf0bd5c7\n"
               "")
         transport_id = input("transport_id > ")
