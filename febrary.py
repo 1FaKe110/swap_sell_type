@@ -13,10 +13,9 @@ class ParserChequeV3:
 
     @classmethod
     def __get_chq_attrib__(cls, filename, root):
-
         chk = '{http://fsrar.ru/WEGAIS/ChequeV3}'
         d = root.find('.//' + chk + 'Date')
-        _date = d.text
+        date = d.text
 
         with open(filename) as f:
             chq = f.read()
@@ -24,7 +23,7 @@ class ParserChequeV3:
             ch_b64_bytes = base64.b64encode(ch_bytes)
             ch_b64_string = ch_b64_bytes.decode()
 
-        json1 = {"date": _date,
+        json1 = {"date": date,
                  "data": ch_b64_string}
         return json1
 
@@ -32,27 +31,28 @@ class ParserChequeV3:
         return self.__get_chq_attrib__(filename, root)
 
 
-class chequeutm():
-    def __chequeutm__(self, filename, root):
+class ParserChequeV0:
+
+    @classmethod
+    def __get_chq_attrib__(cls, filename, root):
         date_year = '20' + root.attrib['datetime'][4:6]
         date_month = root.attrib['datetime'][2:4]
         date_day = root.attrib['datetime'][:2]
         date_time = 'T' + root.attrib['datetime'][6:8] + ':' + root.attrib['datetime'][-2:] + ':00'
-        _date = date_year + '-' + date_month + '-' + date_day + date_time
+        date = date_year + '-' + date_month + '-' + date_day + date_time
 
-        with open(filename) as ch:
-            cheque = ch.read()
-            ch_bytes = cheque.encode('utf-8')
-            ch_b64_bytes = base64.b64encode(ch_bytes)
+        with open(filename, 'rb') as f:
+            chq_bin = f.read()
+            ch_b64_bytes = base64.b64encode(chq_bin)
             ch_b64_string = ch_b64_bytes.decode()
 
-        json1 = {"date": _date,
+        json1 = {"date": date,
                  "data": ch_b64_string}
 
         return json1
 
-    def get_chequeutm_attr(self, filename, root):
-        return self.__chequeutm__(filename, root)
+    def get_chq_attrib(self, filename, root):
+        return self.__get_chq_attrib__(filename, root)
 
 
 class GetFilesFromDB:
@@ -134,8 +134,8 @@ class xmltojson_inbox_base():
                 return type, attr
             else:
                 type = 'Cheque'
-                chutm = chequeutm()
-                attr = chutm.get_chequeutm_attr(filename, root)
+                chutm = ParserChequeV0()
+                attr = chutm.get_chq_attrib(filename, root)
                 return type, attr
 
         tree = xml.parse(filename)
