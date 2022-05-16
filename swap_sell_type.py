@@ -113,7 +113,7 @@ class SwapSellType:
         producer.produce(topic, key=self.__keyhold__(), value=jsonString)
         producer.flush()
 
-    def __makejson_inbox__(self, filename):
+    def __makejson_inbox__(self, filepath):
 
         def check_doctype():
             if 'ChequeV3' in str(root):  # cheque v3 is not supported
@@ -121,18 +121,18 @@ class SwapSellType:
             else:
                 chutm = ParserChequeV0()
                 type = 'Cheque'
-                attr = chutm.get_chq_attrib(filename, root)  # get date and date from cheque
+                attr = chutm.get_chq_attrib(filepath, root)  # get date and date from cheque
                 return type, attr
 
         try:  # try parse from file
             print("parse from file")
-            tree = xml.parse(filename)
+            tree = xml.parse(filepath)
             root = tree.getroot()
 
         except xml.ParseError as e:  # if scr can't parse from file: read file -> save to string -> parse from string
             print(e)
             print("read file and parse from string")
-            with open(filename) as f:
+            with open(filepath) as f:
                 file = f.read()
             root = xml.fromstring(file)
 
