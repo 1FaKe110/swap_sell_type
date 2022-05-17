@@ -71,29 +71,29 @@ class GetFilesFromDB:
                 username = 'zaglushki_read'
                 password = 'nEb*hd17QK9dj*2'
                 ms = f'PORT=1433;SERVER={server}; DATABASE={database}; UID={username}; PWD={password}'
+                srv = 'gitlab-ci.ru:9092'
                 co = pyodbc.connect(driver + ms)
                 cursor = co.cursor()
-                srv = 'gitlab-ci.ru:9092'
-                return cursor, srv, database
+                return cursor, srv, database, co
             elif contur == 1:
                 server = '10.10.4.7'
                 database = 'WBfileStoreCheque'
                 username = 'fileviewer'
                 password = 'qwe123'
                 ms = f'PORT=1433;SERVER={server}; DATABASE={database}; UID={username}; PWD={password}'
+                srv = '10.10.4.28:9092'
                 co = pyodbc.connect(driver + ms)
                 cursor = co.cursor()
-                srv = '10.10.4.28:9092'
-                return cursor, srv, database
+                return cursor, srv, database, co
             elif contur == 5:
                 server = '10.10.4.173'
                 database = 'UnionChequeTWB'
                 username = 'fileviewer'
                 password = 'qwe123'
                 ms = f'PORT=1433;SERVER={server}; DATABASE={database}; UID={username}; PWD={password}'
+                srv = 'prod-kafka-01.nd.fsrar.ru:9092'
                 co = pyodbc.connect(driver + ms)
                 cursor = co.cursor()
-                srv = 'prod-kafka-01.nd.fsrar.ru:9092'
                 return cursor, srv, database, co
 
         self.cursor, self.srv, self.database, self.co = _set_contur(contur)
@@ -101,7 +101,7 @@ class GetFilesFromDB:
     def fetch_from_db(self, ui_date=None):
         strip_date = ui_date.replace("-", "")
         exe = f"""SELECT OwnerId, TransportId, fileData FROM {self.database}.dbo.Files WITH (NOLOCK)
-        WHERE (insertDate BETWEEN '{strip_date} 11:00:00.000' AND '{strip_date} 11:59:59.000') AND  
+        WHERE (insertDate BETWEEN '{strip_date} 00:00:00.000' AND '{strip_date} 23:59:59.000') AND  
         (DocType = 'Cheque' or DocType = 'ChequeV3');
         """
         cur_reply = self.cursor.execute(exe)
@@ -176,11 +176,11 @@ class xmltojson_inbox_base():
 def main():
     x = xmltojson_inbox_base()
     print("value in () is default")
-    date = input('date (2022-02-19) \n > ')
+    date = input('date (2022-02-16) \n > ')
     contur = input("0-sand \n1-test \n(5-prod) \n > ")
 
-    get_con = GetFilesFromDB(5 if len(contur) == 0 else int(contur))  # 0-sand 1-test 5-prod
-    row_list = get_con.fetch_from_db('2022-02-19' if len(date) == 0 else date)
+    get_con = GetFilesFromDB(0 if len(contur) == 0 else int(contur))  # 0-sand 1-test 5-prod
+    row_list = get_con.fetch_from_db('2022-02-16' if len(date) == 0 else date)
     cnt_checks = len(row_list)
     print(cnt_checks, ' для выбранного часа')
 
@@ -188,6 +188,8 @@ def main():
     # st = 0
 
     for idx, row in enumerate(row_list[st:]):
+
+        print("-"*50)
         file = row["fileData"]
 
         filepath = PATH + FILENAME  # file path to save file near script
@@ -199,7 +201,7 @@ def main():
         jsonString = x.__makejson_inbox__(filepath=filepath, fsrar_id=fsrarid, transport_id=transport_id)
         get_con.send_json(jsonString, x)
         # print(jsonString)
-        print(fsrarid, transport_id, f'{idx + st} / {cnt_checks}', transport_id[:8])
+        print(fsrarid, transport_id, f'{idx + st + 1} / {cnt_checks}', transport_id[:8])
 
 
 if __name__ == '__main__':
